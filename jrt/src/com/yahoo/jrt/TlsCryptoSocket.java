@@ -80,10 +80,14 @@ public class TlsCryptoSocket implements CryptoSocket {
 
     @Override
     public HandshakeResult handshake() throws IOException {
-        HandshakeState newHandshakeState = processHandshakeState(this.handshakeState);
-        debugLog(() -> String.format("Handshake state '%s' => '%s'", this.handshakeState, newHandshakeState));
-        this.handshakeState = newHandshakeState;
-        return toHandshakeResult(newHandshakeState);
+        try {
+            HandshakeState newHandshakeState = processHandshakeState(this.handshakeState);
+            debugLog(() -> String.format("Handshake state '%s' => '%s'", this.handshakeState, newHandshakeState));
+            this.handshakeState = newHandshakeState;
+            return toHandshakeResult(newHandshakeState);
+        } catch (IOException e) {
+            throw debugLogException(e);
+        }
     }
 
     @Override
@@ -185,45 +189,61 @@ public class TlsCryptoSocket implements CryptoSocket {
 
     @Override
     public int read(ByteBuffer dst) throws IOException {
-        verifyHandshakeCompleted();
-        int bytesUnwrapped = drain(dst);
-        if (bytesUnwrapped > 0) return bytesUnwrapped;
+        try {
+            verifyHandshakeCompleted();
+            int bytesUnwrapped = drain(dst);
+            if (bytesUnwrapped > 0) return bytesUnwrapped;
 
-        int bytesRead = channelRead();
-        if (bytesRead == 0) return 0;
-        return drain(dst);
+            int bytesRead = channelRead();
+            if (bytesRead == 0) return 0;
+            return drain(dst);
+        } catch (IOException e) {
+            throw debugLogException(e);
+        }
     }
 
     @Override
     public int drain(ByteBuffer dst) throws IOException {
-        verifyHandshakeCompleted();
-        int totalBytesUnwrapped = 0;
-        int bytesUnwrapped;
-        do {
-            bytesUnwrapped = applicationDataUnwrap(dst);
-            totalBytesUnwrapped += bytesUnwrapped;
-        } while (bytesUnwrapped > 0);
-        return totalBytesUnwrapped;
+        try {
+            verifyHandshakeCompleted();
+            int totalBytesUnwrapped = 0;
+            int bytesUnwrapped;
+            do {
+                bytesUnwrapped = applicationDataUnwrap(dst);
+                totalBytesUnwrapped += bytesUnwrapped;
+            } while (bytesUnwrapped > 0);
+            return totalBytesUnwrapped;
+        } catch (IOException e) {
+            throw debugLogException(e);
+        }
     }
 
     @Override
     public int write(ByteBuffer src) throws IOException {
-        verifyHandshakeCompleted();
-        if (flush() == FlushResult.NEED_WRITE) return 0;
-        int totalBytesWrapped = 0;
-        int bytesWrapped;
-        do {
-            bytesWrapped = applicationDataWrap(src);
-            totalBytesWrapped += bytesWrapped;
-        } while (bytesWrapped > 0 && wrapBuffer.bytes() < sessionPacketBufferSize);
-        return totalBytesWrapped;
+        try {
+            verifyHandshakeCompleted();
+            if (flush() == FlushResult.NEED_WRITE) return 0;
+            int totalBytesWrapped = 0;
+            int bytesWrapped;
+            do {
+                bytesWrapped = applicationDataWrap(src);
+                totalBytesWrapped += bytesWrapped;
+            } while (bytesWrapped > 0 && wrapBuffer.bytes() < sessionPacketBufferSize);
+            return totalBytesWrapped;
+        } catch (IOException e) {
+            throw debugLogException(e);
+        }
     }
 
     @Override
     public FlushResult flush() throws IOException {
-        verifyHandshakeCompleted();
-        channelWrite();
-        return wrapBuffer.bytes() > 0 ? FlushResult.NEED_WRITE : FlushResult.DONE;
+        try {
+            verifyHandshakeCompleted();
+            channelWrite();
+            return wrapBuffer.bytes() > 0 ? FlushResult.NEED_WRITE : FlushResult.DONE;
+        } catch (IOException e) {
+            throw debugLogException(e);
+        }
     }
 
     @Override
@@ -344,9 +364,9 @@ public class TlsCryptoSocket implements CryptoSocket {
     private void debugLog(Supplier<String> message, Throwable t) {
         Supplier<String> messageWithPrefix = () -> String.format("SSLEngine@%h: %s", sslEngine, message.get());
         if (t != null) {
-            log.log(Level.FINE, t, messageWithPrefix);
+            log.log(Level.INFO, t, messageWithPrefix);
         } else {
-            log.log(Level.FINE, messageWithPrefix);
+            log.log(Level.INFO, messageWithPrefix);
         }
     }
 
