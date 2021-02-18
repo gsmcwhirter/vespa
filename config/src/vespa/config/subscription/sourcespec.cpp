@@ -12,6 +12,9 @@
 #include <vespa/config/print/asciiconfigwriter.h>
 #include <cassert>
 
+#include <vespa/log/log.h>
+LOG_SETUP(".config.subscription.sourcespec");
+
 namespace config {
 
 class BuilderMap : public std::map<ConfigKey, ConfigInstance *> {
@@ -119,7 +122,13 @@ ServerSpec::ServerSpec(const vespalib::string & hostSpec)
 SourceFactory::UP
 ServerSpec::createSourceFactory(const TimingValues & timingValues) const
 {
+    std::ostringstream hl;
+    for (const vespalib::string & h : _hostList) {
+        hl << "," << h;
+    }
+
     const auto vespaVersion = VespaVersion::getCurrentVersion();
+    LOG(debug, "** Config for FRTSourceFactory: hl=%s, proto=%d, trace=%d", hl.str(), _protocolVersion, _traceLevel);
     return std::make_unique<FRTSourceFactory>(std::make_unique<FRTConnectionPool>(*this, timingValues), timingValues,
                                               _traceLevel, vespaVersion, _compressionType);
 }

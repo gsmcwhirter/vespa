@@ -41,11 +41,13 @@ ConfigManager::subscribe(const ConfigKey & key, milliseconds timeoutInMillis)
     while (steady_clock::now() < endTime) {
         if (holder->poll())
             break;
+        LOG(spam, "holder polling");
         std::this_thread::sleep_for(10ms);
     }
     if (!holder->poll()) {
         std::ostringstream oss;
         oss << "Timed out while subscribing to '" << key.getDefNamespace() << "." << key.getDefName() << "', configid '" << key.getConfigId() << "'";
+        LOG(debug, oss.str());
         throw ConfigTimeoutException(oss.str());
     }
     LOG(debug, "done subscribing");
