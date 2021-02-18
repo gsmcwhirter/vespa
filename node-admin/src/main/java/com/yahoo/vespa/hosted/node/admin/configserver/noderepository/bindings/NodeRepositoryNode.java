@@ -76,6 +76,8 @@ public class NodeRepositoryNode {
     public Boolean wantToDeprovision;
     @JsonProperty("orchestratorStatus")
     public String orchestratorStatus;
+    @JsonProperty("nodeArchiveUrl")
+    public String nodeArchiveUrl;
 
     @JsonProperty("reports")
     public Map<String, JsonNode> reports = null;
@@ -113,6 +115,7 @@ public class NodeRepositoryNode {
                 ", wantToRetire=" + wantToRetire +
                 ", wantToDeprovision=" + wantToDeprovision +
                 ", orchestratorStatus=" + orchestratorStatus +
+                ", nodeArchiveUrl=" + nodeArchiveUrl +
                 ", reports=" + reports +
                 '}';
     }

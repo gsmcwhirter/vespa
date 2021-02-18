@@ -181,7 +181,8 @@ public class RealNodeRepository implements NodeRepository {
                 node.ipAddresses,
                 node.additionalIpAddresses,
                 reports,
-                Optional.ofNullable(node.parentHostname));
+                Optional.ofNullable(node.parentHostname),
+                Optional.ofNullable(node.nodeArchiveUrl));
     }
 
     private static NodeResources.DiskSpeed diskSpeedFromString(String diskSpeed) {
