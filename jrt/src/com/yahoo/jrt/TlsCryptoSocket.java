@@ -360,6 +360,7 @@ public class TlsCryptoSocket implements CryptoSocket {
     }
 
     private static void disableTlsv13(SSLEngine sslEngine) {
+        if (sslEngine.getUseClientMode()) return;
         String[] filteredProtocols = Arrays.stream(sslEngine.getEnabledProtocols())
                 .filter(p -> !p.equals("TLSv1.3"))
                 .toArray(String[]::new);
