@@ -6,6 +6,9 @@
 #include <vespa/fnet/transport.h>
 #include <vespa/fastos/thread.h>
 
+#include <vespa/log/log.h>
+LOG_SETUP(".config.frt.frtconnectionpool");
+
 namespace config {
 
 FRTConnectionPool::FRTConnectionKey::FRTConnectionKey(int idx, const vespalib::string& hostname)
@@ -65,6 +68,7 @@ FRTConnectionPool::getCurrent()
 FRTConnection *
 FRTConnectionPool::getNextRoundRobin()
 {
+    LOG(spam, "getting round robin connection");
     std::vector<FRTConnection *> readySources;
     getReadySources(readySources);
     std::vector<FRTConnection *> suspendedSources;
@@ -72,10 +76,12 @@ FRTConnectionPool::getNextRoundRobin()
     FRTConnection* nextFRTConnection = nullptr;
 
     if (!readySources.empty()) {
+        LOG(spam, "getting error-free connection");
         int sel = _selectIdx % (int)readySources.size();
         _selectIdx = sel + 1;
         nextFRTConnection = readySources[sel];
     } else if (!suspendedSources.empty()) {
+        LOG(spam, "getting non-error-free connection");
         int sel = _selectIdx % (int)suspendedSources.size();
         _selectIdx = sel + 1;
         nextFRTConnection = suspendedSources[sel];
@@ -86,6 +92,7 @@ FRTConnectionPool::getNextRoundRobin()
 FRTConnection *
 FRTConnectionPool::getNextHashBased()
 {
+    LOG(spam, "getting hash-based connection for hostname=%s", _hostname.c_str());
     std::vector<FRTConnection*> readySources;
     getReadySources(readySources);
     std::vector<FRTConnection*> suspendedSources;

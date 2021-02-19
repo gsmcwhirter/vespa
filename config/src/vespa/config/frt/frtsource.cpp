@@ -51,8 +51,9 @@ FRTSource::getConfig()
     int64_t serverTimeout = _agent->getTimeout();
     double clientTimeout = (serverTimeout / 1000.0) + 5.0; // The additional 5 seconds is the time allowed for the server to respond after serverTimeout has elapsed.
     Connection * connection = _connectionFactory->getCurrent();
+    LOG(spam, "got connection");
     const ConfigState & state(_agent->getConfigState());
- //   LOG(debug, "invoking request with md5 %s, gen %" PRId64 ", servertimeout(%" PRId64 "), client(%f)", state.md5.c_str(), state.generation, serverTimeout, clientTimeout);
+    LOG(debug, "invoking request with md5 %s, gen %" PRId64 ", servertimeout(%" PRId64 "), client(%f)", state.md5.c_str(), state.generation, serverTimeout, clientTimeout);
 
 
     FRTConfigRequest::UP request = _requestFactory.createConfigRequest(_key, connection, state, serverTimeout);
