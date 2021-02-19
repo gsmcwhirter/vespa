@@ -11,6 +11,7 @@
 #include <vespa/vespalib/text/stringtokenizer.h>
 #include <vespa/config/print/asciiconfigwriter.h>
 #include <cassert>
+#include <sstream>
 
 #include <vespa/log/log.h>
 LOG_SETUP(".config.subscription.sourcespec");
