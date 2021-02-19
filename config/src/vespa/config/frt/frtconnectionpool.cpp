@@ -100,9 +100,11 @@ FRTConnectionPool::getNextHashBased()
     FRTConnection* nextFRTConnection = nullptr;
 
     if (!readySources.empty()) {
+        LOG(spam, "getting error-free connection");
         int sel = std::abs(hashCode(_hostname) % (int)readySources.size());
         nextFRTConnection = readySources[sel];
     } else {
+        LOG(spam, "getting non-error-free connection");
         int sel = std::abs(hashCode(_hostname) % (int)suspendedSources.size());
         nextFRTConnection = suspendedSources[sel];
     }

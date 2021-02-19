@@ -59,6 +59,9 @@ FRTSource::getConfig()
     FRTConfigRequest::UP request = _requestFactory.createConfigRequest(_key, connection, state, serverTimeout);
     FRT_RPCRequest * req = request->getRequest();
 
+    LOG(spam, "printing FRT_RPCRequest");
+    req->Print(0);
+
     _currentRequest = std::move(request);
     connection->invoke(req, clientTimeout, this);
 }
@@ -96,7 +99,7 @@ FRTSource::close()
     if (_currentRequest.get() != NULL)
         _currentRequest->abort();
     LOG(spam, "Syncing");
-    _connectionFactory->syncTransport();
+    // _connectionFactory->syncTransport();
     _currentRequest.reset(0);
     LOG(spam, "closed");
 }
