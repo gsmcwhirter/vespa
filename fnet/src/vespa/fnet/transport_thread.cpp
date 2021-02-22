@@ -473,22 +473,31 @@ FNET_TransportThread::EventLoopIteration() {
         _now = steady_clock::now();
 
         // handle io-events
+        LOG(spam, "dispatching io-events");
         auto dispatchResult = _selector.dispatch(*this);
 
         if ((dispatchResult == vespalib::SelectorDispatchResult::NO_WAKEUP) && (getConfig()._events_before_wakeup > 1)) {
+            LOG(spam, "handling wakeup");
             handle_wakeup();
+            LOG(spam, "done handling wakeup");
         }
 
         // handle IOC time-outs
         if (getConfig()._iocTimeOut > vespalib::duration::zero()) {
+            LOG(spam, "handling IOC timeouts");
             checkTimedoutComponents(getConfig()._iocTimeOut);
+            LOG(spam, "done handling IOC timeouts");
         }
 
+        LOG(spam, "checking tasks");
         // perform pending tasks
         _scheduler.CheckTasks();
 
+        LOG(spam, "flushing delete list");
         // perform scheduled delete operations
         FlushDeleteList();
+
+        LOG(spam, "done loop iteration");
     }                      // -- END OF MAIN EVENT LOOP --
 
     if (!IsShutDown())
