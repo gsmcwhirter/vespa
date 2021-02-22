@@ -496,6 +496,7 @@ FNET_TransportThread::EventLoopIteration() {
     if (_finished)
         return false;
 
+    LOG(spam, "triggering end event loop");
     endEventLoop();
     return false;
 }
@@ -513,26 +514,32 @@ FNET_TransportThread::checkTimedoutComponents(vespalib::duration timeout) {
 
 void
 FNET_TransportThread::endEventLoop() {
+    LOG(spam, "ending event loop");
     // flush event queue
     {
         std::lock_guard<std::mutex> guard(_lock);
         _queue.FlushPackets_NoLock(&_myQueue);
     }
 
+    LOG(spam, "event queue flushed");
+
     // discard remaining events
     FNET_Context context;
     FNET_Packet *packet = nullptr;
     while ((packet = _myQueue.DequeuePacket_NoLock(&context)) != nullptr) {
+        LOG(spam, "discarding event");
         if (packet->GetCommand() == FNET_ControlPacket::FNET_CMD_EXECUTE) {
             context._value.EXECUTABLE->execute();
         } else {
             DiscardEvent((FNET_ControlPacket *)packet, context);
         }
     }
+    LOG(spam, "events discarded");
 
     // close and remove all I/O Components
     FNET_IOComponent *component = _componentsHead;
     while (component != nullptr) {
+        LOG(spam, "cleaning up component");
         assert(component == _componentsHead);
         FNET_IOComponent *tmp = component;
         component = component->_ioc_next;
@@ -546,6 +553,7 @@ FNET_TransportThread::endEventLoop() {
            _componentCnt   == 0    &&
            _queue.IsEmpty_NoLock() &&
            _myQueue.IsEmpty_NoLock());
+    LOG(spam, "components removed");
 
     {
         std::lock_guard<std::mutex> guard(_shutdownLock);
