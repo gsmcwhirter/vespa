@@ -226,6 +226,7 @@ FNET_TransportThread::FNET_TransportThread(FNET_Transport &owner_in)
       _finished(false)
 {
     trapsigpipe();
+    LOG(spam, "transport thread constructed");
 }
 
 
@@ -249,6 +250,7 @@ FNET_TransportThread::getConfig() const {
 bool
 FNET_TransportThread::tune(SocketHandle &handle) const
 {
+    LOG(spam, "tuning transport thread");
     handle.set_keepalive(true);
     handle.set_linger(true, 0);
     handle.set_nodelay(getConfig()._tcpNoDelay);
@@ -279,6 +281,7 @@ FNET_TransportThread::Connect(const char *spec, FNET_IPacketStreamer *streamer,
                               FNET_IServerAdapter *serverAdapter,
                               FNET_Context connContext)
 {
+    LOG(spam, "transport thread connecting");
     std::unique_ptr<FNET_Connection> conn = std::make_unique<FNET_Connection>(this, streamer, serverAdapter,
             adminHandler, adminContext, connContext, spec);
     if (conn->Init()) {
@@ -322,6 +325,7 @@ FNET_TransportThread::handshake_act(FNET_IOComponent *comp, bool needRef)
 void
 FNET_TransportThread::Close(FNET_IOComponent *comp, bool needRef)
 {
+    LOG(spam, "transport thread closing");
     if (needRef) {
         comp->AddRef();
     }
@@ -384,6 +388,7 @@ FNET_TransportThread::WaitFinished()
 bool
 FNET_TransportThread::InitEventLoop()
 {
+    LOG(spam, "InitEventLoop");
     if (_started.exchange(true)) {
         LOG(error, "Transport: InitEventLoop: object already active!");
         return false;
