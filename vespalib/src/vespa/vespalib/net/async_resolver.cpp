@@ -131,14 +131,18 @@ AsyncResolver::CachingHostResolver::ip_address(const vespalib::string &host_name
 void
 AsyncResolver::ResolveTask::run()
 {
+    LOG(spam, "ResolveTask run");
     if (ResultHandler::SP handler = weak_handler.lock()) {        
         SocketSpec socket_spec(spec);
         if (!socket_spec.valid()) {
             LOG(warning, "invalid socket spec: '%s'", spec.c_str());
         }
         if (!socket_spec.host().empty()) {
+            LOG(spam, "replacing host with ip address; host=%s", socket_spec.host().c_str());
             socket_spec = socket_spec.replace_host(resolver.ip_address(socket_spec.host()));
+            LOG(spam, "new host is now host=%s", socket_spec.host().c_str());
         }
+        LOG(spam, "client address is %s", socket_spec.client_address().spec().c_str());
         handler->handle_result(socket_spec.client_address());
     }
 }
@@ -162,6 +166,7 @@ AsyncResolver::wait_for_pending_resolves() {
 void
 AsyncResolver::resolve_async(const vespalib::string &spec, ResultHandler::WP result_handler)
 {
+    LOG(spam, "AsyncResolver resolve_async");
     auto task = std::make_unique<ResolveTask>(spec, *_resolver, std::move(result_handler));
     auto rejected = _executor->execute(std::move(task));
     assert(!rejected);

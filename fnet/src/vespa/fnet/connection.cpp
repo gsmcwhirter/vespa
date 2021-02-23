@@ -81,12 +81,14 @@ FNET_Connection::ResolveHandler::ResolveHandler(FNET_Connection *conn)
     : connection(conn),
       address()
 {
+    LOG(spam, "resolve handler init");
     connection->AddRef();
 }
 
 void
 FNET_Connection::ResolveHandler::handle_result(vespalib::SocketAddress result)
 {
+    LOG(spam, "handling resolve result");
     address = result;
     connection->Owner()->Add(connection);
 }
@@ -548,12 +550,14 @@ FNET_Connection::~FNET_Connection()
 bool
 FNET_Connection::Init()
 {
+    LOG(spam, "connection init");
     // set up relevant events
     EnableReadEvent(true);
     EnableWriteEvent(true);
 
     // init server admin channel
     if (CanAcceptChannels() && _adminChannel == nullptr) {
+        LOG(spam, "init server admin channel");
         FNET_Channel::UP ach(new FNET_Channel(FNET_NOID, this));
         if (_serverAdapter->InitAdminChannel(ach.get())) {
             AddRef_NoLock();
@@ -563,11 +567,13 @@ FNET_Connection::Init()
 
     // handle close by admin channel init
     if (_state == FNET_CLOSED) {
+        LOG(spam, "state closed");
         return false;
     }
 
     // initiate async resolve
     if (IsClient()) {
+        LOG(spam, "is client, so async resolving");
         _resolve_handler = std::make_shared<ResolveHandler>(this);
         Owner()->owner().resolve_async(GetSpec(), _resolve_handler);
     }
